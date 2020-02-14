@@ -1,10 +1,6 @@
 node {
 	try  {
 	notify('Job Started') 
-	
-	stage('Git-Checkout') {
-	git 'https://github.com/vibhavanya/microservice1.git'
-	}
     
 	def project_path="Code/petclinic"
  
