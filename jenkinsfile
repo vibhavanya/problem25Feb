@@ -52,18 +52,7 @@ node {
                         "target": "vibha1"}]
                     }"""
         server.upload(uploadSpec)
-    }
-     
-    stage('Jfrog Artifactory download'){
-		def server= Artifactory.server 'Artifactory'
-		def downloadSpec = """{
-		"files": [{
-		"pattern": "petclinic/*.war",
-		"target": "/root/artifacts/"
-		}]
-		}"""
-		server.download(downloadSpec)
-   }  
+    		}  
 	}
 
 	notify('Job Completed')   
