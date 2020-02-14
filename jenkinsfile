@@ -4,10 +4,10 @@ node {
 
      
 	stage('Git-Checkout') {
-	git 'https://github.com/vibhavanya/microservice1.git'
+	git 'https://github.com/vibhavanya/mindtree-devops-30Jan2020.git'
 	}
     
-	def project_path="Code/petclinic"
+	def project_path="01-Jenkins/Code/petclinic"
  
 	dir(project_path) {
     
@@ -52,8 +52,27 @@ node {
                         "target": "vibha1"}]
                     }"""
         server.upload(uploadSpec)
-    		}  
-	}
+    }
+     
+    stage('Jfrog Artifactory download'){
+		def server= Artifactory.server 'Artifactory'
+		def downloadSpec = """{
+		"files": [{
+		"pattern": "petclinic/*.war",
+		"target": "/root/artifacts/"
+		}]
+		}"""
+		server.download(downloadSpec)
+   }
+	
+   stage('Want to deploy in test server?'){
+		input('Do you want to proceed?')
+   }
+   
+   stage('Docker-Stage-Deployment') {
+		sh label: '', script: 'docker-compose up -d --build'
+  }	
+  }
 
 	notify('Job Completed')   
 	} catch (err) {
@@ -70,3 +89,4 @@ node {
 	<p>Check console output at <a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a></p>""",
 		)
 	}
+
