@@ -1,46 +1,80 @@
 node {
- try  {
- notify('Job Started') 
+	try  {
+	notify('Job Started') 
 
      
-  stage('Git-Checkout') {
-   git 'https://github.com/vibhavanya/microservice1.git'
-  }
+	stage('Git-Checkout') {
+	git 'https://github.com/vibhavanya/microservice1.git'
+	}
     
- def project_path="Code/petclinic"
+	def project_path="Code/petclinic"
  
- dir(project_path) {
+	dir(project_path) {
     
-  stage('Maven-Clean') {
-   sh label: '', script: 'mvn clean'
-  }
+	stage('Maven-Clean') {
+		sh label: '', script: 'mvn clean'
+	}
     
- stage('Maven-Compile') {
-   sh label: '', script: 'mvn compile'
-  }
+	stage('Maven-Compile') {
+		sh label: '', script: 'mvn compile'
+	}
+   
+   stage('Sonar Analysis'){
+        withSonarQubeEnv('SonarQube'){
+        sh 'mvn sonar:sonar'
+        }
+   }
   
    stage('Maven-Test') {
-   sh label: '', script: 'mvn test'
-  }
-  
+		sh label: '', script: 'mvn test'
+	}
+  stage('Quality Gate'){
+          timeout(time: 1, unit: 'HOURS') {
+              def qg = waitForQualityGate()
+              if (qg.status != 'OK') {
+                  error "Pipeline aborted due to quality gate failure: ${qg.status}"
+              }
+          }
+      }
    stage('Maven-Package') {
-   sh label: '', script: 'mvn package'
-  }
+		sh label: '', script: 'mvn package'
+	}
   
    stage('Archive-Artifacts') {
-   archiveArtifacts 'target/*.war'
-  }  
- }
+		archiveArtifacts 'target/*.war'
+  }
+  
+    stage('Jfrog Artifacory Upload') {
+        def server= Artifactory.server 'Artifactory'
+                    def uploadSpec= """{
+                        "files": [{
+                        "pattern": "/root/.jenkins/workspace/fin/01-Jenkins/Code/petclinic/target/*.war",
+                        "target": "vibha1"}]
+                    }"""
+        server.upload(uploadSpec)
+    }
+     
+    stage('Jfrog Artifactory download'){
+		def server= Artifactory.server 'Artifactory'
+		def downloadSpec = """{
+		"files": [{
+		"pattern": "petclinic/*.war",
+		"target": "/root/artifacts/"
+		}]
+		}"""
+		server.download(downloadSpec)
+   }  
+	}
 
-notify('Job Completed')   
-} catch (err) {
-  notify("Error ${err}")
-  currentBuild.result = 'FAILURE'
-}
-}
+	notify('Job Completed')   
+	} catch (err) {
+		notify("Error ${err}")
+		currentBuild.result = 'FAILURE'
+		}
+	}
 
-def notify(status){
-    emailext (
+	def notify(status){
+   	 emailext (
 	to: "vibha.vanya@gmail.com",
 	subject: "${status}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
 	 body: """<p>${status}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
