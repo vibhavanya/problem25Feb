@@ -1,14 +1,15 @@
 node {
 	try  {
 	notify('Job Started') 
+	 
+   stage('Git-Checkout') {
+	git 'https://github.com/vibhavanya/microservice1.git'
+	}
     
 	def project_path="Code/petclinic"
  
 	dir(project_path) {
-   
-   stage('Git-Checkout') {
-	git 'https://github.com/vibhavanya/microservice1.git'
-	}
+  
 	
     stage('Jfrog Artifactory download'){
 		def server= Artifactory.server 'Artifactory'
