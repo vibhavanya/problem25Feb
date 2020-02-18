@@ -6,6 +6,10 @@ node {
  
 	dir(project_path) {
    
+   stage('Git-Checkout') {
+	git 'https://github.com/vibhavanya/microservice1.git'
+	}
+	
     stage('Jfrog Artifactory download'){
 		def server= Artifactory.server 'Artifactory'
 		def downloadSpec = """{
