@@ -11,7 +11,7 @@ node {
 		def downloadSpec = """{
 		"files": [{
 		"pattern": "petclinic/*.war",
-		"target": "/root/artifacts/"
+		"target": "artifacts/"
 		}]
 		}"""
 		server.download(downloadSpec)
